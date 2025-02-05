@@ -112,6 +112,16 @@
             text-align: center;
             padding: 10px;
         }
+
+        .qr-code {
+            max-width: 200px;
+            width: 100%;
+            height: auto;
+            margin: 10px auto;
+            display: block;
+            border: 10px solid rgba(255, 255, 255, 1.0);
+            border-radius: 8px
+        }
     </style>
 </head>
 
@@ -140,6 +150,12 @@
                 {% endif %}
             </div>
             {% endfor %}
+            <div class="day-card">
+                <div class="day-header">
+                    <h2>Website</h2>
+                </div>
+                <img src="{{ url_for('static', filename='qr-code.png') }}" alt="Website QR Code" class="qr-code">
+            </div>
         </div>
     </div>
 </body>
