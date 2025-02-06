@@ -1,4 +1,6 @@
-"""Operating System Path Library"""
+"""
+Operating System Path Library
+"""
 import os.path
 import pickle
 import datetime
