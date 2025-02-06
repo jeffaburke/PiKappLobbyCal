@@ -1,20 +1,30 @@
-from flask import Flask, render_template
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
-from googleapiclient.discovery import build
+"""Operating System Path Library"""
 import os.path
 import pickle
 import datetime
 from collections import defaultdict
+from flask import Flask, render_template
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
+from googleapiclient.discovery import build
 
 app = Flask(__name__)
 
 class GoogleCalendarAPI:
+    """
+    Class to handle Google Calndar API authentication
+    """
     def __init__(self):
-        self.SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
+        self.scopes = ['https://www.googleapis.com/auth/calendar.readonly']
         self.creds = None
 
     def authenticate(self):
+        """
+        Authencates using the credentials.json file or token.pickle
+
+        Returns:
+            Build of the calendar API with the credentials
+        """
         if os.path.exists('token.pickle'):
             with open('token.pickle', 'rb') as token:
                 self.creds = pickle.load(token)
@@ -24,7 +34,7 @@ class GoogleCalendarAPI:
                 self.creds.refresh(Request())
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(
-                    'credentials.json', self.SCOPES)
+                    'credentials.json', self.scopes)
                 self.creds = flow.run_local_server(port=0)
 
             with open('token.pickle', 'wb') as token:
@@ -33,7 +43,12 @@ class GoogleCalendarAPI:
         return build('calendar', 'v3', credentials=self.creds)
 
     def get_weeks_events(self, service):
-        # Get start of current week (Monday)
+        """
+        Collect the events for the weeks
+
+        Args:
+            service: Takes a Google API build
+        """
         today = datetime.datetime.now(datetime.UTC)
         start_of_week = today - datetime.timedelta(days=today.weekday())
         end_of_week = start_of_week + datetime.timedelta(days=7)
@@ -64,6 +79,12 @@ class GoogleCalendarAPI:
 
 @app.route('/')
 def index():
+    """
+    Renders the Index page
+
+    Returns:
+        Rendered template of the index page
+    """
     calendar_api = GoogleCalendarAPI()
     service = calendar_api.authenticate()
     weekly_events = calendar_api.get_weeks_events(service)
