@@ -122,10 +122,69 @@
             border: 10px solid rgba(255, 255, 255, 1.0);
             border-radius: 8px
         }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .fullscreen-photo {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            z-index: 100;
+        }
     </style>
+    <script>
+        const interval = 30000 // 60000 is one minute
+        document.addEventListener('DOMContentLoaded', () => {
+            const photos = [
+                "{{ url_for('static', filename='photo.jpg') }}",
+                // Add more photo URLs here
+            ];
+
+            const calendarView = document.querySelector('.container');
+            const photoView = document.getElementById('photo-container');
+            const currentPhoto = document.getElementById('current-photo');
+            const body = document.querySelector('body');
+
+            let photoIndex = 0;
+            let showingCalendar = true;
+
+            function toggleView() {
+                if (showingCalendar) {
+                    calendarView.classList.add('hidden');
+                    photoView.classList.remove('hidden');
+                    body.style.background = 'none'; // Hide background
+                    currentPhoto.src = photos[photoIndex];
+                    photoIndex = (photoIndex + 1) % photos.length;
+                } else {
+                    calendarView.classList.remove('hidden');
+                    photoView.classList.add('hidden');
+                    body.style.background = ''; // Restore background
+                }
+                showingCalendar = !showingCalendar;
+            }
+
+            setInterval(toggleView, interval);
+
+            setInterval(() => {
+                if (!showingCalendar) {
+                    currentPhoto.src = photos[photoIndex];
+                    photoIndex = (photoIndex + 1) % photos.length;
+                }
+            }, (interval/5));
+        });
+    </script>
 </head>
 
 <body>
+    <div id="photo-container" class="hidden">
+        <img id="current-photo" class="fullscreen-photo" src="" alt="Cycling Photo">
+    </div>
+
     <div class="header">
         <h1>Pi Kappa Phi - Weekly Calendar</h1>
     </div>
