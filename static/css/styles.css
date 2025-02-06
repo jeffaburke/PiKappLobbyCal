@@ -46,15 +46,15 @@ body::after {
     padding: 20px;
     position: relative;
 }
-
+/*
 .container, #photo-container {
     transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
-}
+} */
 
 #photo-container {
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+    /* transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out; */
 }
 
 .show-photo {
