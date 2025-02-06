@@ -138,44 +138,68 @@
         }
     </style>
     <script>
-        const interval = 30000 // 60000 is one minute
-        document.addEventListener('DOMContentLoaded', () => {
-            const photos = [
-                "{{ url_for('static', filename='photo.jpg') }}",
-                // Add more photo URLs here
-            ];
+        const CALENDAR_INTERVAL = 30000; // Time between calendar/photo switches
+        const PHOTO_INTERVAL = CALENDAR_INTERVAL / 5; // Time between photo changes
 
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Get DOM elements
             const calendarView = document.querySelector('.container');
             const photoView = document.getElementById('photo-container');
             const currentPhoto = document.getElementById('current-photo');
             const body = document.querySelector('body');
 
-            let photoIndex = 0;
+            // Get photos and tracking variables
+            const photos = await fetch('/get_photos').then(res => res.json());
+            let lastShownIndex = -1;
             let showingCalendar = true;
+
+            function getRandomPhoto() {
+                if (!photos || photos.length === 0) {
+                    console.error("No photos available");
+                    return ""; // Return an empty string instead of undefined
+                }
+
+                let newIndex;
+                do {
+                    newIndex = Math.floor(Math.random() * photos.length);
+                } while (newIndex === lastShownIndex && photos.length > 1);
+
+                lastShownIndex = newIndex;
+                return photos[newIndex];
+            }
 
             function toggleView() {
                 if (showingCalendar) {
                     calendarView.classList.add('hidden');
                     photoView.classList.remove('hidden');
-                    body.style.background = 'none'; // Hide background
-                    currentPhoto.src = photos[photoIndex];
-                    photoIndex = (photoIndex + 1) % photos.length;
+                    body.style.background = 'none';
+                    const newPhoto = getRandomPhoto();
+                    if (newPhoto) {
+                        currentPhoto.src = newPhoto;
+                    } else {
+                        console.error("Invalid photo URL received");
+                    }
+
                 } else {
                     calendarView.classList.remove('hidden');
                     photoView.classList.add('hidden');
-                    body.style.background = ''; // Restore background
+                    body.style.background = '';
                 }
                 showingCalendar = !showingCalendar;
             }
 
-            setInterval(toggleView, interval);
-
+            // Set intervals for view toggling and photo cycling
+            setInterval(toggleView, CALENDAR_INTERVAL);
             setInterval(() => {
                 if (!showingCalendar) {
-                    currentPhoto.src = photos[photoIndex];
-                    photoIndex = (photoIndex + 1) % photos.length;
+                    const newPhoto = getRandomPhoto();
+                    if (newPhoto) {
+                        currentPhoto.src = newPhoto;
+                    } else {
+                        console.error("Invalid photo URL received");
+                    }
                 }
-            }, (interval/5));
+            }, PHOTO_INTERVAL);
         });
     </script>
 </head>
