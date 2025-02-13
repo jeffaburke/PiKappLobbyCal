@@ -5,7 +5,7 @@ import os.path
 import pickle
 import datetime
 from collections import defaultdict
-from flask import Flask, render_template
+from flask import Flask, jsonify, render_template, url_for
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
@@ -91,6 +91,18 @@ def index():
     service = calendar_api.authenticate()
     weekly_events = calendar_api.get_weeks_events(service)
     return render_template('index.html', events=weekly_events)
+
+@app.route('/get_photos')
+def get_photos():
+    """
+    Grabs a json list of the photos in the album
+    """
+    album_path = os.path.join(app.static_folder, 'album')
+    photos = []
+    for file in os.listdir(album_path):
+        if file.lower().endswith(('.png', '.jpg', '.jpeg')):
+            photos.append(url_for('static', filename=f'album/{file}'))
+    return jsonify(photos)
 
 if __name__ == '__main__':
     app.run(debug=True)
