@@ -9,6 +9,7 @@ from flask import Flask, jsonify, render_template, url_for
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
+from google.auth.exceptions import RefreshError
 
 app = Flask(__name__)
 
@@ -22,23 +23,40 @@ class GoogleCalendarAPI:
 
     def authenticate(self):
         """
-        Authencates using the credentials.json file or token.pickle
-
+        Authenticates using the credentials.json file or token.pickle
         Returns:
             Build of the calendar API with the credentials
         """
+        # First try to load existing token
         if os.path.exists('token.pickle'):
-            with open('token.pickle', 'rb') as token:
-                self.creds = pickle.load(token)
+            try:
+                with open('token.pickle', 'rb') as token:
+                    self.creds = pickle.load(token)
 
-        if not self.creds or not self.creds.valid:
-            if self.creds and self.creds.expired and self.creds.refresh_token:
-                self.creds.refresh(Request())
-            else:
-                flow = InstalledAppFlow.from_client_secrets_file(
-                    'credentials.json', self.scopes)
-                self.creds = flow.run_local_server(port=0)
+                # Test if token is valid or can be refreshed
+                if not self.creds.valid:
+                    if self.creds.expired and self.creds.refresh_token:
+                        try:
+                            self.creds.refresh(Request())
+                        except RefreshError:
+                            # If refresh fails, remove token and force re-authentication
+                            os.remove('token.pickle')
+                            self.creds = None
+                    else:
+                        os.remove('token.pickle')
+                        self.creds = None
 
+            except Exception:
+                # If there's any error loading/using token, remove it
+                os.remove('token.pickle')
+                self.creds = None
+
+        # If no valid credentials available, do the OAuth flow
+        if not self.creds:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                'credentials.json', self.scopes)
+            self.creds = flow.run_local_server(port=0)
+            # Save the new credentials
             with open('token.pickle', 'wb') as token:
                 pickle.dump(self.creds, token)
 
