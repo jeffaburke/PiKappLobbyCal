@@ -12,6 +12,9 @@ body {
     min-height: 100vh;
     position: relative;
     transition: background-color 1s ease-in-out; /* Smooth transition for background color */
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
 }
 
 body::before {
@@ -94,6 +97,24 @@ body::after {
     padding: 15px;
     backdrop-filter: blur(5px);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    height: 350px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.events-container {
+    flex-grow: 1;
+    overflow: hidden;
+    position: relative;
+    margin-right: -15px; /* Compensate for day-card padding */
+    padding-right: 15px; /* Add padding back */
+}
+
+.events-scroll {
+    position: relative;
+    transition: transform 0.1s linear;
+    will-change: transform;
 }
 
 .day-header {
@@ -111,6 +132,7 @@ body::after {
     padding: 10px;
     background-color: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(5px);
+    min-height: fit-content;
 }
 
 .event-time {

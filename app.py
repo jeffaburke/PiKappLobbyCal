@@ -8,8 +8,8 @@ from collections import defaultdict
 from flask import Flask, jsonify, render_template, url_for
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
-from googleapiclient.discovery import build
 from google.auth.exceptions import RefreshError
+from googleapiclient.discovery import build
 
 app = Flask(__name__)
 
@@ -64,13 +64,25 @@ class GoogleCalendarAPI:
 
     def get_weeks_events(self, service):
         """
-        Collect the events for the weeks
-
+        Collect the events for the upcoming week starting from next Sunday
+        (or current Sunday if today is Sunday)
         Args:
             service: Takes a Google API build
         """
         today = datetime.datetime.now(datetime.UTC)
-        start_of_week = today - datetime.timedelta(days=today.weekday())
+
+        # Calculate days until next Sunday
+        days_until_sunday = (6 - today.weekday()) % 7
+
+        # If today is not Sunday, start from next Sunday
+        # If today is Sunday, start from today
+        if days_until_sunday > 0:
+            start_of_week = today + datetime.timedelta(days=days_until_sunday)
+        else:  # today is Sunday
+            start_of_week = today
+
+        # Set to beginning of the day (midnight)
+        start_of_week = start_of_week.replace(hour=0, minute=0, second=0, microsecond=0)
         end_of_week = start_of_week + datetime.timedelta(days=7)
 
         events_result = service.events().list(
@@ -87,7 +99,6 @@ class GoogleCalendarAPI:
             start = event['start'].get('dateTime', event['start'].get('date'))
             event_date = datetime.datetime.fromisoformat(start.replace('Z', '+00:00'))
             day_name = event_date.strftime('%A')
-
             event_info = {
                 'summary': event.get('summary', 'No Title'),
                 'time': event_date.strftime('%I:%M %p'),
