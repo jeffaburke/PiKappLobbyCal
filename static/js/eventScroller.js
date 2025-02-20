@@ -8,6 +8,7 @@ export class EventScroller {
         this.isPaused = false;
         this.pauseTimeout = null;
         this.scrollInterval = null;
+        this.isVisible = true;
     }
 
     initialize() {
@@ -69,7 +70,7 @@ export class EventScroller {
     }
 
     scrollAll(maxScrollDistance) {
-        if (!window.showingCalendar || !this.isScrolling || this.isPaused) return;
+        if (!this.isVisible || !this.isScrolling || this.isPaused) return;
 
         let maxCurrentScroll = 0;
         this.scrollableContainers.forEach(scrollData => {
@@ -108,5 +109,12 @@ export class EventScroller {
     cleanup() {
         if (this.scrollInterval) clearInterval(this.scrollInterval);
         if (this.pauseTimeout) clearTimeout(this.pauseTimeout);
+    }
+
+    setVisibility(isVisible) {
+        this.isVisible = isVisible;
+        if (!isVisible) {
+            this.resetAllScrolls();
+        }
     }
 }

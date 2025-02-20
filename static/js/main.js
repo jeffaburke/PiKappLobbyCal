@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 photoManager.body.style.setProperty('--bg-image', 'none'); // Hide background image during photo view
                 photoManager.body.style.backgroundColor = 'rgba(0, 0, 0, 1)';  // Set background color to full opacity
                 photoManager.header.classList.add('hidden');
+                eventScroller.setVisibility(false); // Stop scrolling when calendar is hidden
             }, TRANSITION_DELAY); // Wait 1 second (1000 milliseconds) before executing the code
         } else {
             // Show calendar, hide photo
@@ -30,6 +31,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             photoManager.body.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';  // Set background color with opacity
             photoManager.calendarView.classList.remove('hide-calendar');
             photoManager.body.style.setProperty('--bg-image', 'url("/static/photo.jpg")'); // Restore background image when showing calendar
+            eventScroller.setVisibility(true); // Resume scrolling when calendar is shown
             setTimeout(() => {
                 photoManager.photoView.style.transition = 'opacity 1s ease-in-out';
                 photoManager.photoView.style.opacity = 0;
