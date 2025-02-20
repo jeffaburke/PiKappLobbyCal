@@ -23,7 +23,7 @@
                 </div>
                 {% if events[day] %}
                 {% for event in events[day] %}
-                <div class="event">
+                <div class="event {% if event.isAllDay %}all-day-event{% endif %}">
                     <div class="event-time">{{ event.time }}</div>
                     <div>{{ event.summary }}</div>
                     <div class="event-location">{{ event.location }}</div>

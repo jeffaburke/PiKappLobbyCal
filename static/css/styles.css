@@ -175,3 +175,16 @@ body::after {
     object-fit: cover;
     z-index: 100;
 }
+
+.all-day-event {
+    border-left: 4px solid var(--gold);
+    background-color: rgba(231, 166, 20, 0.1); /* Light gold background */
+    margin: 10px 0;
+    padding: 10px;
+}
+
+.all-day-event .event-time {
+    color: var(--royal-blue);
+    font-weight: bold;
+    font-style: italic;
+}
