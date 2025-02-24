@@ -8,8 +8,8 @@ from collections import defaultdict
 from flask import Flask, jsonify, render_template, url_for
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
-from googleapiclient.discovery import build
 from google.auth.exceptions import RefreshError
+from googleapiclient.discovery import build
 
 app = Flask(__name__)
 
@@ -64,13 +64,25 @@ class GoogleCalendarAPI:
 
     def get_weeks_events(self, service):
         """
-        Collect the events for the weeks
-
+        Collect the events for the upcoming week starting from next Sunday
+        (or current Sunday if today is Sunday)
         Args:
             service: Takes a Google API build
         """
         today = datetime.datetime.now(datetime.UTC)
-        start_of_week = today - datetime.timedelta(days=today.weekday())
+
+        # Calculate days until next Sunday
+        days_until_sunday = (6 - today.weekday()) % 7
+
+        # If today is not Sunday, start from next Sunday
+        # If today is Sunday, start from today
+        if days_until_sunday > 0:
+            start_of_week = today + datetime.timedelta(days=days_until_sunday)
+        else:  # today is Sunday
+            start_of_week = today
+
+        # Set to beginning of the day (midnight)
+        start_of_week = start_of_week.replace(hour=0, minute=0, second=0, microsecond=0)
         end_of_week = start_of_week + datetime.timedelta(days=7)
 
         events_result = service.events().list(
@@ -85,15 +97,41 @@ class GoogleCalendarAPI:
         events_by_day = defaultdict(list)
         for event in events_result.get('items', []):
             start = event['start'].get('dateTime', event['start'].get('date'))
-            event_date = datetime.datetime.fromisoformat(start.replace('Z', '+00:00'))
-            day_name = event_date.strftime('%A')
+            end = event['end'].get('dateTime', event['end'].get('date'))
 
-            event_info = {
-                'summary': event.get('summary', 'No Title'),
-                'time': event_date.strftime('%I:%M %p'),
-                'location': event.get('location', 'No Location')
-            }
-            events_by_day[day_name].append(event_info)
+            # Handle all-day events
+            if 'T' not in start:  # This is an all-day event
+                # Make timezone-aware by adding UTC timezone
+                start_date = datetime.datetime.fromisoformat(start).replace(tzinfo=datetime.UTC)
+                # For all-day events, end date is exclusive, so subtract one day
+                end_date = datetime.datetime.fromisoformat(end).replace(tzinfo=datetime.UTC) - datetime.timedelta(days=1)
+
+                # For each day in the event's duration
+                current_date = start_date
+                while current_date <= end_date:
+                    if start_of_week <= current_date < end_of_week:
+                        day_name = current_date.strftime('%A')
+                        event_info = {
+                            'summary': event.get('summary', 'No Title'),
+                            'time': 'All Day',
+                            'location': event.get('location', 'No Location'),
+                            'isAllDay': True
+                        }
+                        # Insert all-day events at the beginning of the day's list
+                        events_by_day[day_name].insert(0, event_info)
+                    current_date += datetime.timedelta(days=1)
+            else:
+                # Handle regular timed events
+                event_date = datetime.datetime.fromisoformat(start.replace('Z', '+00:00'))
+                if start_of_week <= event_date < end_of_week:
+                    day_name = event_date.strftime('%A')
+                    event_info = {
+                        'summary': event.get('summary', 'No Title'),
+                        'time': event_date.strftime('%I:%M %p'),
+                        'location': event.get('location', 'No Location'),
+                        'isAllDay': False
+                    }
+                    events_by_day[day_name].append(event_info)
 
         return dict(events_by_day)
 
