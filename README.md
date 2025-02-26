@@ -17,6 +17,14 @@ git clone https://github.com/jeffaburke/PiKappLobbyCal.git
 cd PiKappLobbyCal
 ```
 
+2. Create a virtual environment:
+
+```bash
+python -m venv .venv
+```
+
+3. Activate the virtual environment:
+
 Windows
 
 ```bash
@@ -28,15 +36,15 @@ Linux/MacOS
 source .venv/bin/activate
 ```
 
-2. Install dependencies:
+4. Install dependencies:
 
 ```bash
 pip install -e .
 ```
 
-3. Create a `credentials.json` file in the root directory and add your Google Calendar API credentials.
+5. Create a `credentials.json` file in the root directory and add your Google Calendar API credentials.
 
-4. Run the application:
+6. Run the application:
 On first sign-in, you'll be redirected to a URL to authorize the application. You must have access to a keyboard to complete the sign-in process.
 
 The application will run on `http://localhost:5000`
