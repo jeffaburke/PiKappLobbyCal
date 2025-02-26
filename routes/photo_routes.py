@@ -21,16 +21,22 @@ def get_photos():
         logger.debug("Scanning album directory: %s", album_path)
 
         if not os.path.exists(album_path):
-            logger.error("Album directory not found: %s", album_path)
+            logger.error("Album directory missing: %s", album_path)
             return jsonify([])
 
         photos = []
+        skipped_files = []
         for file in os.listdir(album_path):
             if file.lower().endswith(('.png', '.jpg', '.jpeg')):
                 photos.append(url_for('static', filename=f'album/{file}'))
+            else:
+                skipped_files.append(file)
 
-        logger.info("Found %d photos in album", len(photos))
+        if skipped_files:
+            logger.warning("Skipped non-image files: %s", skipped_files)
+
+        logger.info("Found %d photos, skipped %d files", len(photos), len(skipped_files))
         return jsonify(photos)
     except (OSError, NotFound) as e:
-        logger.error("Error accessing photos: %s", str(e))
+        logger.error("Error accessing photos: %s", str(e), exc_info=True)
         return jsonify([])

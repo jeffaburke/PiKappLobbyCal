@@ -11,6 +11,12 @@ logger = setup_logger(__name__)
 
 app = Flask(__name__)
 
+@app.errorhandler(Exception)
+def handle_exception(e):
+    """Log unhandled exceptions"""
+    logger.error("Unhandled exception: %s", str(e), exc_info=True)
+    return "Internal Server Error", 500
+
 # Register blueprints
 try:
     app.register_blueprint(photo_routes)

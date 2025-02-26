@@ -116,28 +116,32 @@ class GoogleCalendarAPI:
         Returns:
             Dictionary of events organized by day
         """
-        today = datetime.datetime.now(datetime.UTC)
+        try:
+            today = datetime.datetime.now(datetime.UTC)
+            logger.debug("Calculating week range from: %s", today)
 
-        # Calculate days since Monday (0 = Monday, 6 = Sunday)
-        days_since_monday = today.weekday()
+            days_since_monday = today.weekday()
+            start_of_week = today - datetime.timedelta(days=days_since_monday)
+            start_of_week = start_of_week.replace(hour=0, minute=0, second=0, microsecond=0)
+            end_of_week = start_of_week + datetime.timedelta(days=7)
 
-        # Go back to Monday of current week
-        start_of_week = today - datetime.timedelta(days=days_since_monday)
-        start_of_week = start_of_week.replace(hour=0, minute=0, second=0, microsecond=0)
+            logger.info("Fetching events from %s to %s", start_of_week, end_of_week)
 
-        # End of week is 7 days after start
-        end_of_week = start_of_week + datetime.timedelta(days=7)
+            events_result = service.events().list(
+                calendarId='t15olu87ufqa11j6oc2f19kvao@group.calendar.google.com',
+                timeMin=start_of_week.isoformat(),
+                timeMax=end_of_week.isoformat(),
+                singleEvents=True,
+                orderBy='startTime'
+            ).execute()
 
-        events_result = service.events().list(
-            calendarId='t15olu87ufqa11j6oc2f19kvao@group.calendar.google.com',
-            timeMin=start_of_week.isoformat(),
-            timeMax=end_of_week.isoformat(),
-            singleEvents=True,
-            orderBy='startTime'
-        ).execute()
+            event_count = len(events_result.get('items', []))
+            logger.info("Retrieved %d events", event_count)
 
-        logger.info("Successfully fetched weekly events")
-        return self._organize_events(events_result, start_of_week, end_of_week)
+            return self._organize_events(events_result, start_of_week, end_of_week)
+        except Exception as e:
+            logger.error("Failed to fetch events: %s", str(e), exc_info=True)
+            raise
 
     def _organize_events(self, events_result, start_of_week, end_of_week):
         """
