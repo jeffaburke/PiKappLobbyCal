@@ -1,14 +1,38 @@
 """
 Google Calendar API Service
 """
+# pylint: disable=line-too-long, disable=broad-exception-caught
+
 import os.path
 import pickle
 import datetime
 from collections import defaultdict
+from dataclasses import dataclass
+
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from google.auth.exceptions import RefreshError
 from googleapiclient.discovery import build
+
+
+@dataclass
+class EventContext:
+    """Context for event handling"""
+    start: str
+    end: str
+    start_of_week: datetime.datetime
+    end_of_week: datetime.datetime
+    events_by_day: defaultdict
+
+
+@dataclass
+class TimedEventContext:
+    """Context for timed event handling"""
+    event_date: datetime.datetime
+    start_of_week: datetime.datetime
+    end_of_week: datetime.datetime
+    events_by_day: defaultdict
+
 
 class GoogleCalendarAPI:
     """
@@ -99,22 +123,20 @@ class GoogleCalendarAPI:
             end = event['end'].get('dateTime', event['end'].get('date'))
 
             if 'T' not in start:  # All-day event
-                self._handle_all_day_event(event, start, end, start_of_week, end_of_week, events_by_day)
+                self._handle_all_day_event(event, EventContext(start, end, start_of_week, end_of_week, events_by_day))
             else:
-                self._handle_timed_event(event, start, start_of_week, end_of_week, events_by_day)
+                self._handle_timed_event(event, TimedEventContext(datetime.datetime.fromisoformat(start.replace('Z', '+00:00')), start_of_week, end_of_week, events_by_day))
 
         return dict(events_by_day)
 
-    def _handle_all_day_event(self, event, start, end, start_of_week, end_of_week, events_by_day):
-        """
-        Handles processing of all-day events
-        """
-        start_date = datetime.datetime.fromisoformat(start).replace(tzinfo=datetime.UTC)
-        end_date = datetime.datetime.fromisoformat(end).replace(tzinfo=datetime.UTC) - datetime.timedelta(days=1)
+    def _handle_all_day_event(self, event: dict, context: EventContext):
+        """Handles processing of all-day events"""
+        start_date = datetime.datetime.fromisoformat(context.start).replace(tzinfo=datetime.UTC)
+        end_date = datetime.datetime.fromisoformat(context.end).replace(tzinfo=datetime.UTC) - datetime.timedelta(days=1)
 
         current_date = start_date
         while current_date <= end_date:
-            if start_of_week <= current_date < end_of_week:
+            if context.start_of_week <= current_date < context.end_of_week:
                 day_name = current_date.strftime('%A')
                 event_info = {
                     'summary': event.get('summary', 'No Title'),
@@ -122,20 +144,17 @@ class GoogleCalendarAPI:
                     'location': event.get('location', 'No Location'),
                     'isAllDay': True
                 }
-                events_by_day[day_name].insert(0, event_info)
+                context.events_by_day[day_name].insert(0, event_info)
             current_date += datetime.timedelta(days=1)
 
-    def _handle_timed_event(self, event, start, start_of_week, end_of_week, events_by_day):
-        """
-        Handles processing of regular timed events
-        """
-        event_date = datetime.datetime.fromisoformat(start.replace('Z', '+00:00'))
-        if start_of_week <= event_date < end_of_week:
-            day_name = event_date.strftime('%A')
+    def _handle_timed_event(self, event: dict, context: TimedEventContext):
+        """Handles processing of regular timed events"""
+        if context.start_of_week <= context.event_date < context.end_of_week:
+            day_name = context.event_date.strftime('%A')
             event_info = {
                 'summary': event.get('summary', 'No Title'),
-                'time': event_date.strftime('%I:%M %p'),
+                'time': context.event_date.strftime('%I:%M %p'),
                 'location': event.get('location', 'No Location'),
                 'isAllDay': False
             }
-            events_by_day[day_name].append(event_info)
+            context.events_by_day[day_name].append(event_info)

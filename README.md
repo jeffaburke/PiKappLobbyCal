@@ -25,21 +25,25 @@ python -m venv .venv
 
 3. Activate the virtual environment:
 
-Windows
-
+Windows:
 ```bash
 .venv\Scripts\Activate.ps1
 ```
-Linux/MacOS
-
+Linux/MacOS:
 ```bash
 source .venv/bin/activate
 ```
 
-4. Install dependencies:
+4. Install the package:
 
+For production:
 ```bash
 pip install -e .
+```
+
+For development (includes testing and linting tools):
+```bash
+pip install -e ".[dev]"
 ```
 
 5. Create a `credentials.json` file in the root directory and add your Google Calendar API credentials.
@@ -48,6 +52,22 @@ pip install -e .
 On first sign-in, you'll be redirected to a URL to authorize the application. You must have access to a keyboard to complete the sign-in process.
 
 The application will run on `http://localhost:5000`
+
+## Development Tools
+
+When installed with `pip install -e ".[dev]"`, you get access to:
+- pytest for testing
+- pylint for code linting
+
+Run tests:
+```bash
+pytest
+```
+
+Run linting:
+```bash
+pylint services routes
+```
 
 ## Project Structure
 
