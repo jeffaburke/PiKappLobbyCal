@@ -6,7 +6,8 @@ export class PhotoManager {
         this.header = document.querySelector('.header');
         this.body = document.querySelector('body');
         this.photos = [];
-        this.lastShownIndex = -1;
+        this.shuffledPhotos = [];
+        this.currentIndex = 0;
         this.defaultPhoto = "/static/photo.jpg";
     }
 
@@ -17,24 +18,39 @@ export class PhotoManager {
                 console.warn("No photos available, using default image.");
                 this.photos = [this.defaultPhoto];
             }
+            this.shufflePhotos();
         } catch (error) {
             console.error("Error fetching photos:", error);
             this.photos = [this.defaultPhoto];
         }
     }
 
-    getRandomPhoto() {
-        let newIndex;
-        do {
-            newIndex = Math.floor(Math.random() * this.photos.length);
-        } while (newIndex === this.lastShownIndex && this.photos.length > 1);
-        this.lastShownIndex = newIndex;
-        return this.photos[newIndex];
+    shufflePhotos() {
+        // Create a copy of the photos array
+        this.shuffledPhotos = [...this.photos];
+
+        // Fisher-Yates shuffle algorithm
+        for (let i = this.shuffledPhotos.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [this.shuffledPhotos[i], this.shuffledPhotos[j]] =
+            [this.shuffledPhotos[j], this.shuffledPhotos[i]];
+        }
+
+        this.currentIndex = 0;
+    }
+
+    getNextPhoto() {
+        // If we've shown all photos, reshuffle
+        if (this.currentIndex >= this.shuffledPhotos.length) {
+            this.shufflePhotos();
+        }
+
+        return this.shuffledPhotos[this.currentIndex++];
     }
 
     preloadNewPhoto() {
         const newPhoto = new Image();
-        newPhoto.src = this.getRandomPhoto();
+        newPhoto.src = this.getNextPhoto();
         newPhoto.style.position = 'absolute';
         newPhoto.style.top = '0';
         newPhoto.style.left = '0';
