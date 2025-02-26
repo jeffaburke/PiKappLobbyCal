@@ -13,7 +13,9 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from google.auth.exceptions import RefreshError
 from googleapiclient.discovery import build
+from utils.logger import setup_logger
 
+logger = setup_logger(__name__)
 
 @dataclass
 class EventContext:
@@ -48,38 +50,61 @@ class GoogleCalendarAPI:
         Returns:
             Build of the calendar API with the credentials
         """
-        # First try to load existing token
-        if os.path.exists('token.pickle'):
-            try:
-                with open('token.pickle', 'rb') as token:
-                    self.creds = pickle.load(token)
+        try:
+            if not os.path.exists('token.pickle'):
+                return self._create_new_credentials()
 
-                # Test if token is valid or can be refreshed
-                if not self.creds.valid:
-                    if self.creds.expired and self.creds.refresh_token:
-                        try:
-                            self.creds.refresh(Request())
-                        except RefreshError:
-                            # If refresh fails, remove token and force re-authentication
-                            os.remove('token.pickle')
-                            self.creds = None
-                    else:
-                        os.remove('token.pickle')
-                        self.creds = None
+            self.creds = self._load_existing_credentials()
+            if not self.creds:
+                return self._create_new_credentials()
 
-            except Exception:
-                # If there's any error loading/using token, remove it
+            if not self.creds.valid:
+                self.creds = self._refresh_credentials()
+                if not self.creds:
+                    return self._create_new_credentials()
+
+            return build('calendar', 'v3', credentials=self.creds)
+
+        except Exception as e:
+            logger.error("Authentication failed: %s", str(e))
+            raise
+
+    def _load_existing_credentials(self):
+        """Load credentials from token file"""
+        try:
+            with open('token.pickle', 'rb') as token:
+                return pickle.load(token)
+        except Exception as e:
+            logger.error("Error loading token: %s", str(e))
+            if os.path.exists('token.pickle'):
                 os.remove('token.pickle')
-                self.creds = None
+            return None
 
-        # If no valid credentials available, do the OAuth flow
-        if not self.creds:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', self.scopes)
-            self.creds = flow.run_local_server(port=0)
-            # Save the new credentials
-            with open('token.pickle', 'wb') as token:
-                pickle.dump(self.creds, token)
+    def _refresh_credentials(self):
+        """Refresh expired credentials"""
+        if not self.creds.expired or not self.creds.refresh_token:
+            return None
+
+        try:
+            self.creds.refresh(Request())
+            return self.creds
+        except RefreshError:
+            logger.warning("Failed to refresh token, forcing re-authentication")
+            if os.path.exists('token.pickle'):
+                os.remove('token.pickle')
+            return None
+
+    def _create_new_credentials(self):
+        """Create new credentials using OAuth flow"""
+        logger.info("Starting OAuth flow")
+        flow = InstalledAppFlow.from_client_secrets_file(
+            'credentials.json', self.scopes)
+        self.creds = flow.run_local_server(port=0)
+        logger.info("OAuth flow completed successfully")
+
+        with open('token.pickle', 'wb') as token:
+            pickle.dump(self.creds, token)
+            logger.debug("Saved new credentials to token.pickle")
 
         return build('calendar', 'v3', credentials=self.creds)
 
@@ -111,6 +136,7 @@ class GoogleCalendarAPI:
             orderBy='startTime'
         ).execute()
 
+        logger.info("Successfully fetched weekly events")
         return self._organize_events(events_result, start_of_week, end_of_week)
 
     def _organize_events(self, events_result, start_of_week, end_of_week):
