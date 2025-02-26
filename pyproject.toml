@@ -32,6 +32,7 @@ packages = ["services", "routes"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+pythonpath = ["."]
 
 [tool.pylint.messages_control]
 disable = [
