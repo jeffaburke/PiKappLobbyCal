@@ -61,21 +61,22 @@ class GoogleCalendarAPI:
 
     def get_weeks_events(self, service):
         """
-        Collect the events for the upcoming week starting from next Sunday
+        Collect the events for the current week starting from Monday
         Args:
             service: Takes a Google API build
         Returns:
             Dictionary of events organized by day
         """
         today = datetime.datetime.now(datetime.UTC)
-        days_until_sunday = (6 - today.weekday()) % 7
 
-        if days_until_sunday > 0:
-            start_of_week = today + datetime.timedelta(days=days_until_sunday)
-        else:  # today is Sunday
-            start_of_week = today
+        # Calculate days since Monday (0 = Monday, 6 = Sunday)
+        days_since_monday = today.weekday()
 
+        # Go back to Monday of current week
+        start_of_week = today - datetime.timedelta(days=days_since_monday)
         start_of_week = start_of_week.replace(hour=0, minute=0, second=0, microsecond=0)
+
+        # End of week is 7 days after start
         end_of_week = start_of_week + datetime.timedelta(days=7)
 
         events_result = service.events().list(
