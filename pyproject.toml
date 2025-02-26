@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pikapp-lobby-cal"
+version = "1.0.0"
+description = "Pi Kappa Phi Lobby Calendar Display"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Jeffrey Burke", email = "jburke0519@gmail.com"}
+]
+dependencies = [
+    "Flask>=3.1.0",
+    "google-api-core>=2.24.1",
+    "google-api-python-client>=2.160.0",
+    "google-auth>=2.38.0",
+    "google-auth-httplib2>=0.2.0",
+    "google-auth-oauthlib>=1.2.1"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pylint>=3.3.4",
+    "pytest>=7.0.0"
+]
+
+[tool.setuptools]
+packages = ["services", "routes"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.pylint.messages_control]
+disable = [
+    "C0111",  # missing-docstring
+    "C0103",  # invalid-name
+]
+
+[tool.pylint.format]
+max-line-length = 100
