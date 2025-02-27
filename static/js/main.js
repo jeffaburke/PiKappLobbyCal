@@ -2,6 +2,17 @@ import { PhotoManager } from './photoManager.js';
 import { EventScroller } from './eventScroller.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
+    document.body.classList.add('cursor-hidden');
+
+    let cursorTimeout;
+    document.addEventListener('mousemove', () => {
+        document.body.classList.remove('cursor-hidden');
+        clearTimeout(cursorTimeout);
+        cursorTimeout = setTimeout(() => {
+            document.body.classList.add('cursor-hidden');
+        }, 3000);  // Hide cursor after 3 seconds of inactivity
+    });
+
     const CALENDAR_INTERVAL = 30000; // Time between calendar/photo switches
     const PHOTO_INTERVAL = CALENDAR_INTERVAL / 5; // Time between photo changes
     const TRANSITION_DELAY = 1000; // Delay for the first photo to stay on screen

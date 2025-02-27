@@ -188,3 +188,7 @@ body::after {
     font-weight: bold;
     font-style: italic;
 }
+
+.cursor-hidden {
+    cursor: none !important;
+}
