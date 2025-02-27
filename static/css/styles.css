@@ -192,3 +192,11 @@ body::after {
 .cursor-hidden {
     cursor: none !important;
 }
+
+.day-card.current-day .day-header h2 {
+    color: var(--gold);
+}
+
+.day-card.current-day .event-time {
+    color: var(--gold);
+}
