@@ -12,6 +12,7 @@ authors = [
     {name = "Jeffrey Burke", email = "jburke0519@gmail.com"}
 ]
 dependencies = [
+    "dotenv>=1.0.1",
     "Flask>=3.1.0",
     "google-api-core>=2.24.1",
     "google-api-python-client>=2.160.0",

@@ -3,10 +3,10 @@ import logging
 import sys
 from logging.handlers import RotatingFileHandler
 
-def setup_logger(name: str, log_file: str = 'app.log') -> logging.Logger:
+def setup_logger(name: str, log_file: str = 'app.log', log_level: str = 'INFO') -> logging.Logger:
     """Configure and return a logger instance"""
     logger = logging.getLogger(name)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(getattr(logging, log_level))
 
     # File handler with rotation
     file_handler = RotatingFileHandler(

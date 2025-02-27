@@ -5,11 +5,16 @@ from flask import Flask
 from routes.photo_routes import photo_routes
 from routes.calendar_routes import calendar_routes
 from utils.logger import setup_logger
+from config import get_config
 
-# Setup main application logger
-logger = setup_logger(__name__)
+# Get configuration based on environment
+config = get_config()
+
+# Setup main application logger with environment-specific level
+logger = setup_logger(__name__, log_level=config.LOG_LEVEL)
 
 app = Flask(__name__)
+app.config.from_object(config)
 
 @app.errorhandler(Exception)
 def handle_exception(e):
@@ -27,5 +32,6 @@ except Exception as e:
     raise
 
 if __name__ == '__main__':
-    logger.info("Starting Flask application")
-    app.run(debug=True)
+    logger.info("Starting Flask application in %s mode",
+                "production" if app.config['ENV'] == 'production' else "development")
+    app.run(debug=app.config['DEBUG'])
