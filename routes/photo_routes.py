@@ -17,7 +17,8 @@ def get_photos():
         JSON array of photo URLs
     """
     try:
-        album_path = os.path.join(current_app.static_folder, 'album')
+        album_path = os.path.join(current_app.static_folder,
+                                 current_app.config['PHOTO_DIRECTORY'])
         logger.debug("Scanning album directory: %s", album_path)
 
         if not os.path.exists(album_path):

@@ -13,8 +13,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         }, 3000);  // Hide cursor after 3 seconds of inactivity
     });
 
-    const CALENDAR_INTERVAL = 30000; // Time between calendar/photo switches
-    const PHOTO_INTERVAL = CALENDAR_INTERVAL / 5; // Time between photo changes
+    // Get intervals from server config
+    const config = await fetch('/config').then(res => res.json());
+    const CALENDAR_INTERVAL = config.CALENDAR_INTERVAL;
+    const PHOTO_INTERVAL = config.PHOTO_INTERVAL;
     const TRANSITION_DELAY = 1000; // Delay for the first photo to stay on screen
 
     window.showingCalendar = true;

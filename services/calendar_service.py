@@ -40,9 +40,10 @@ class GoogleCalendarAPI:
     """
     Class to handle Google Calendar API authentication and data fetching
     """
-    def __init__(self):
+    def __init__(self, calendar_id=None):
         self.scopes = ['https://www.googleapis.com/auth/calendar.readonly']
         self.creds = None
+        self.calendar_id = calendar_id or 't15olu87ufqa11j6oc2f19kvao@group.calendar.google.com'
 
     def authenticate(self):
         """
@@ -128,7 +129,7 @@ class GoogleCalendarAPI:
             logger.info("Fetching events from %s to %s", start_of_week, end_of_week)
 
             events_result = service.events().list(
-                calendarId='t15olu87ufqa11j6oc2f19kvao@group.calendar.google.com',
+                calendarId=self.calendar_id,
                 timeMin=start_of_week.isoformat(),
                 timeMax=end_of_week.isoformat(),
                 singleEvents=True,

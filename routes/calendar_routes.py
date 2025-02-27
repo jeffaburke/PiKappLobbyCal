@@ -1,12 +1,14 @@
 """
 Calendar Routes
 """
-from flask import Blueprint, render_template
+import datetime
+
+from flask import Blueprint, render_template, current_app
 from google.auth.exceptions import GoogleAuthError
 from googleapiclient.errors import HttpError
+
 from services.calendar_service import GoogleCalendarAPI
 from utils.logger import setup_logger
-import datetime
 
 logger = setup_logger(__name__)
 calendar_routes = Blueprint('calendar_routes', __name__)
@@ -19,7 +21,7 @@ def index():
         Rendered template of the index page
     """
     try:
-        calendar_api = GoogleCalendarAPI()
+        calendar_api = GoogleCalendarAPI(calendar_id=current_app.config['CALENDAR_ID'])
         logger.info("Authenticating with Google Calendar API")
         service = calendar_api.authenticate()
 

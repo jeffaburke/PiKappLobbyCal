@@ -4,6 +4,7 @@ Main Flask Application
 from flask import Flask
 from routes.photo_routes import photo_routes
 from routes.calendar_routes import calendar_routes
+from routes.config_routes import config_routes
 from utils.logger import setup_logger
 from config import get_config
 
@@ -26,6 +27,7 @@ def handle_exception(e):
 try:
     app.register_blueprint(photo_routes)
     app.register_blueprint(calendar_routes)
+    app.register_blueprint(config_routes)
     logger.info("Successfully registered all blueprints")
 except Exception as e:
     logger.error("Failed to register blueprints: %s", str(e))
